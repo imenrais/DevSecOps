@@ -1,1 +1,2 @@
-This is sample Python Flask application.# devopssecure
+This is a sample Python Flask application used to demonstrate a DevSecOps CI/CD pipeline.
+
