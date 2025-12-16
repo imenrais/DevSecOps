@@ -65,30 +65,28 @@ pipeline {
     stage('Dependency Scan (OWASP DC)') {
   steps {
     withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
-      sh '''
-        dependency-check.sh \
-          --scan . \
-          --format ALL \
-          --out dependency-check-report \
-          --project DevSecOps \
-          --failOnCVSS 7.0 \
-          --data .odc-data \
-          --nvdApiKey "$NVD_API_KEY" \
+      dependencyCheck(
+        additionalArguments: """
+          --scan .
+          --format ALL
+          --out dependency-check-report
+          --project DevSecOps
+          --failOnCVSS 7.0
+          --data .odc-data
+          --nvdApiKey $NVD_API_KEY
           --disableAssembly
-      '''
+        """,
+        odcInstallation: 'OWASP'
+      )
     }
   }
   post {
     always {
       dependencyCheckPublisher pattern: 'dependency-check-report/dependency-check-report.xml'
-      archiveArtifacts artifacts: '''
-        dependency-check-report/dependency-check-report.html,
-        dependency-check-report/dependency-check-report.json
-      ''', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'dependency-check-report/*', allowEmptyArchive: true
     }
   }
 }
-
 
     stage('Set Image Tag') {
       steps {
