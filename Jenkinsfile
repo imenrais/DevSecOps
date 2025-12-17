@@ -5,13 +5,8 @@ pipeline {
   environment {
     IMAGE_REPO = 'imenrais/devsecops'   // your Docker Hub repo
   }
-
+  
   stages {
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/imenrais/DevSecOps'
-      }
-    }
 
     stage('Secrets Scan (Gitleaks)') {
       steps {
@@ -51,7 +46,6 @@ pipeline {
 
     stage('Quality Gate') {
       steps {
-        waitForQualityGate abortPipeline : false
         timeout(time: 10, unit: 'MINUTES') {
           script {
         def qg = waitForQualityGate(abortPipeline: false)
@@ -64,6 +58,7 @@ pipeline {
 
     stage('Dependency Scan (OWASP DC)') {
   steps {
+    sh 'mkdir -p dependency-check-report'
     withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
       dependencyCheck(
         additionalArguments: """
@@ -73,7 +68,7 @@ pipeline {
           --project DevSecOps
           --failOnCVSS 7.0
           --data .odc-data
-          --nvdApiKey $NVD_API_KEY
+          --nvdApiKey \$NVD_API_KEY
           --disableAssembly
         """,
         odcInstallation: 'OWASP'
